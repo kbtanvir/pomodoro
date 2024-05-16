@@ -7,26 +7,23 @@ class PomodoroTimer:
         self.master = master
         master.title("Pomodoro Timer")
         master.attributes("-topmost", True)
-        master.overrideredirect(True)
+        # master.overrideredirect(True)
         master.attributes("-toolwindow", True)
 
-
-        self.manual_reset = False
         # Set the icon
         icon_path = "app.ico"  # Replace this with the path to your icon
         master.iconbitmap(icon_path)
-        
-        self.break_window_visible = False
+
         self.is_running = False
         self.remaining_time = 25 * 60  # Initial time in seconds
 
-        self.timer_minutes_entry = tk.Entry(master)
-        self.timer_minutes_entry.pack(side=tk.LEFT)
-        self.timer_minutes_entry.insert(0, "25")
+        self.minutes_input = tk.Entry(master, width=5)
+        self.minutes_input.insert(0, "0")
+        self.minutes_input.pack(side=tk.LEFT)
 
-        self.timer_seconds_entry = tk.Entry(master)
-        self.timer_seconds_entry.pack(side=tk.LEFT)
-        self.timer_seconds_entry.insert(0, "0")
+        self.seconds_input = tk.Entry(master, width=5)
+        self.seconds_input.insert(0, "3")
+        self.seconds_input.pack(side=tk.LEFT)
 
         self.start_button = tk.Button(master, text="▶", command=self.start_timer)
         self.start_button.pack(side=tk.LEFT)
@@ -39,6 +36,10 @@ class PomodoroTimer:
 
         self.timer_display = tk.Label(master, text="", font=("Helvetica", 14))
         self.timer_display.pack(side=tk.LEFT)
+
+        self.break_label = tk.Label(master, text="Take Break", font=("Helvetica", 14))
+        self.break_label.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+        self.break_label.place_forget()
 
         self.state_label = tk.Label(master, text="Timer", font=("Helvetica", 8))
         # self.state_label.pack(side=tk.LEFT)
@@ -53,19 +54,6 @@ class PomodoroTimer:
 
         self.update_timer_display()
 
-        # break window
-
-        self.break_window = tk.Toplevel(master)
-        self.break_window.attributes("-fullscreen", True)
-        self.break_window.title("Take a Break")
-        self.break_window.withdraw()
-        self.break_label = tk.Label(self.break_window, text="Take a Break", font=("Helvetica", 36))
-        self.break_label.pack()
-
-    def show_break_window(self):
-        
-        self.break_label.pack(expand=True)
-
     def minimize_window(self):
         self.master.iconify()
 
@@ -74,12 +62,9 @@ class PomodoroTimer:
 
     def start_timer(self):
         if not self.is_running:
-            timer_minutes = int(self.timer_minutes_entry.get())
-            timer_seconds = int(self.timer_seconds_entry.get())
-            self.remaining_time = timer_minutes * 60 + timer_seconds  # Convert minutes and seconds to seconds
-            self.timer_minutes_entry.config(state="disabled")
-            self.timer_seconds_entry.config(state="disabled")
-
+            minutes = int(self.minutes_input.get())
+            seconds = int(self.seconds_input.get())
+            self.remaining_time = minutes * 60 + seconds
             self.is_running = True
             self.start_button.config(state="disabled")
             self.pause_button.config(state="normal")
@@ -95,6 +80,16 @@ class PomodoroTimer:
         time_format = '{:02d}:{:02d}'.format(mins, secs)
         self.timer_display.config(text=time_format)
         self.remaining_time -= 1
+
+        if self.remaining_time == 1:
+            self.master.attributes("-fullscreen", True)
+            self.timer_display.lower()  # Lower timer_display
+            self.break_label.lift()  # Raise break_label
+        # elif self.remaining_time == 1:  # Return to normal display mode just before resetting
+        #     self.master.attributes("-fullscreen", False)
+        #     self.timer_display.lift()  # Raise timer_display
+        #     self.break_label.lower()  # Lower break_label
+
         self.timer_id = self.master.after(1000, self.run_timer)
 
     def pause_timer(self):
@@ -105,25 +100,18 @@ class PomodoroTimer:
             self.master.after_cancel(self.timer_id)  # Cancel the scheduled update
             self.update_state_label("Timer Paused")
 
-
     def reset_timer(self):
         self.is_running = False
         self.start_button.config(state="normal")
         self.pause_button.config(state="disabled")
         self.reset_button.config(state="disabled")
         self.master.after_cancel(self.timer_id)  # Cancel the scheduled update
-
-        # Check if the timer has reached zero
-        if self.remaining_time == 0:
-            self.update_timer_display()  # Update the timer display to show "00:00"
-            self.show_break_window()     # Show the break window if needed
-        else:
-            # Reset the remaining time to the initial value
-            self.remaining_time = 25 * 60  # Initial time in seconds
-
+        # self.master.attributes("-fullscreen", False)  # Exit full-screen mode
+        self.remaining_time = 25 * 60
+        self.update_timer_display()
         self.update_state_label("Timer Stopped")
-        self.timer_minutes_entry.config(state="normal")
-        self.timer_seconds_entry.config(state="normal")
+        self.break_label.place_forget()  # Hide break_label
+        self.timer_display.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
     def update_state_label(self, state):
         self.state_label.config(text=state)
