@@ -7,12 +7,12 @@ class PomodoroTimer:
         self.master = master
 
         self.master.title("Pomodoro Timer")
-        self.master.geometry("320x200")
-
+        self.master.geometry("320x300")
         self.master.attributes("-topmost", True)
 
         self.is_running = False
         self.is_fullscreen = False
+        self.is_sticky = True
         self.remaining_time = 0
 
         self.timer_display = tk.Label(self.master, text="", font=("Helvetica", 30))
@@ -42,32 +42,49 @@ class PomodoroTimer:
         # ? -------------------------------
 
         self.start_button = ttk.Button(self.controls_frame, text="Start", command=self.start_timer)
-        self.start_button.grid(row=1, column=0, columnspan=1, padx=5, pady=5)
+        self.start_button.grid(row=1, column=1, columnspan=1, padx=5, pady=5)
 
         self.pause_button = ttk.Button(self.controls_frame, text="Pause", command=self.pause_timer, state="disabled")
-        self.pause_button.grid(row=1, column=1, columnspan=1, padx=5, pady=5)
+        self.pause_button.grid(row=1, column=2, columnspan=1, padx=5, pady=5)
 
         self.reset_button = ttk.Button(self.controls_frame, text="Reset", command=self.reset_timer, state="disabled")
-        self.reset_button.grid(row=1, column=2, columnspan=1, padx=5, pady=5)
+        self.reset_button.grid(row=2, column=1, columnspan=1, padx=5, pady=5)
 
         self.full_screen_button = ttk.Button(
             self.controls_frame,
             text="Full Screen",
-            command=self.toogle_fullscreen,
+            command=self.toggle_fullscreen,
             state="normal"
         )
-        self.full_screen_button.grid(row=1, column=3, columnspan=1, padx=5, pady=5)
+        self.full_screen_button.grid(row=2, column=2, columnspan=1, padx=5, pady=5)
+
+        self.sticky = ttk.Button(
+            self.controls_frame,
+            text=f"Sticky:{self.is_sticky}",
+            command=self.toggle_sticky,
+            state="normal"
+        )
+        self.sticky.grid(row=3, column=1, columnspan=1, padx=5, pady=5)
 
         self.break_label = tk.Label(master, text="Take Break", font=("Helvetica", 30))
 
         self.update_timer_display()
 
-    def toogle_fullscreen(self):
-        if self.is_fullscreen == True:
-            self.exit_fullscreen()
+    def toggle_sticky(self):
+
+        if self.is_sticky == True:
+            self.master.attributes("-topmost", True)
+            # self.master.overrideredirect(False)
 
         else:
-            self.go_fullscreen()
+            self.master.geometry('100x50')
+            self.master.attributes("-topmost", False)
+            # self.master.overrideredirect(True)
+
+        self.is_sticky = not self.is_sticky
+
+    def toggle_fullscreen(self):
+        self.exit_fullscreen() if self.is_fullscreen else self.go_fullscreen()
 
     def exit_fullscreen(self):
         # self.master.overrideredirect(True)
