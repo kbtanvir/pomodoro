@@ -1,11 +1,13 @@
 import tkinter as tk
 
+
 class PomodoroTimer:
     def __init__(self, master):
         self.master = master
+
         master.title("Pomodoro Timer")
         master.attributes("-topmost", True)
-        # master.overrideredirect(True)
+        master.overrideredirect(True)
         master.attributes("-toolwindow", True)
 
         # Set the icon
@@ -13,7 +15,7 @@ class PomodoroTimer:
         master.iconbitmap(icon_path)
 
         self.is_running = False
-        self.remaining_time = 25 * 60  # Initial time in seconds
+        self.remaining_time = 0 * 3  # Initial time in seconds
 
         self.minutes_input = tk.Entry(master, width=5)
         self.minutes_input.insert(0, "0")
@@ -61,6 +63,7 @@ class PomodoroTimer:
     def start_timer(self):
         self.master.attributes("-fullscreen", False)
         self.break_label.place_forget()
+        self.master.overrideredirect(True)
 
         if not self.is_running:
             minutes = int(self.minutes_input.get())
@@ -83,6 +86,7 @@ class PomodoroTimer:
         self.remaining_time -= 1
 
         if self.remaining_time == 0:
+            self.master.overrideredirect(False)
             self.master.attributes("-fullscreen", True)
             self.timer_display.lower()  # Lower timer_display
             self.break_label.lift()  # Raise break_label
