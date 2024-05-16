@@ -1,6 +1,4 @@
 import tkinter as tk
-import time
-
 
 class PomodoroTimer:
     def __init__(self, master):
@@ -61,6 +59,9 @@ class PomodoroTimer:
         self.master.destroy()
 
     def start_timer(self):
+        self.master.attributes("-fullscreen", False)
+        self.break_label.place_forget()
+
         if not self.is_running:
             minutes = int(self.minutes_input.get())
             seconds = int(self.seconds_input.get())
@@ -81,14 +82,10 @@ class PomodoroTimer:
         self.timer_display.config(text=time_format)
         self.remaining_time -= 1
 
-        if self.remaining_time == 1:
+        if self.remaining_time == 0:
             self.master.attributes("-fullscreen", True)
             self.timer_display.lower()  # Lower timer_display
             self.break_label.lift()  # Raise break_label
-        # elif self.remaining_time == 1:  # Return to normal display mode just before resetting
-        #     self.master.attributes("-fullscreen", False)
-        #     self.timer_display.lift()  # Raise timer_display
-        #     self.break_label.lower()  # Lower break_label
 
         self.timer_id = self.master.after(1000, self.run_timer)
 
@@ -110,8 +107,7 @@ class PomodoroTimer:
         self.remaining_time = 25 * 60
         self.update_timer_display()
         self.update_state_label("Timer Stopped")
-        self.break_label.place_forget()  # Hide break_label
-        self.timer_display.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+        self.break_label.place(relx=0.5, rely=0.5, anchor=tk.CENTER)  # Hide break_label
 
     def update_state_label(self, state):
         self.state_label.config(text=state)
@@ -124,7 +120,7 @@ class PomodoroTimer:
 
 def main():
     root = tk.Tk()
-    app = PomodoroTimer(root)
+    PomodoroTimer(root)
     root.mainloop()
 
 
