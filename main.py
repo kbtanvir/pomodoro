@@ -17,28 +17,28 @@ class PomodoroTimer:
         self.is_running = False
         self.remaining_time = 25 * 60  # Initial time in seconds
 
+        self.start_button = tk.Button(master, text="▶", command=self.start_timer)
+        self.start_button.pack(side=tk.LEFT)
+
+        self.pause_button = tk.Button(master, text="⏸", command=self.pause_timer, state="disabled")
+        self.pause_button.pack(side=tk.LEFT)
+
+        self.reset_button = tk.Button(master, text="🍤", command=self.reset_timer, state="disabled")
+        self.reset_button.pack(side=tk.LEFT)
+
+        self.timer_display = tk.Label(master, text="", font=("Helvetica", 14))
+        self.timer_display.pack(side=tk.LEFT)
+
+        self.state_label = tk.Label(master, text="Timer", font=("Helvetica", 8))
+        # self.state_label.pack(side=tk.LEFT)
+
         # Add minimize button
-        self.minimize_button = tk.Button(master, text="Minimize", command=self.minimize_window)
+        self.minimize_button = tk.Button(master, text="➖", command=self.minimize_window)
         self.minimize_button.pack(side=tk.LEFT)
 
         # Add close button
-        self.close_button = tk.Button(master, text="Close", command=self.close_window)
-        self.close_button.pack(side=tk.RIGHT)
-
-        self.state_label = tk.Label(master, text="Timer", font=("Helvetica", 16))
-        self.state_label.pack()
-
-        self.timer_display = tk.Label(master, text="", font=("Helvetica", 24))
-        self.timer_display.pack()
-
-        self.start_button = tk.Button(master, text="▶", command=self.start_timer)
-        self.start_button.pack()
-
-        self.pause_button = tk.Button(master, text="⏸", command=self.pause_timer, state="disabled")
-        self.pause_button.pack()
-
-        self.reset_button = tk.Button(master, text="🍤", command=self.reset_timer, state="disabled")
-        self.reset_button.pack()
+        self.close_button = tk.Button(master, text="❌", command=self.close_window)
+        self.close_button.pack(side=tk.LEFT)
 
         self.update_timer_display()
 
