@@ -1,7 +1,6 @@
-import sys
 import tkinter as tk
 from ttkthemes import ThemedTk, ThemedStyle
-from tkinter import PhotoImage, ttk, filedialog
+from tkinter import ttk, filedialog
 from PIL import Image, ImageTk
 
 
@@ -200,7 +199,7 @@ class CommandHandler:
             self.app.geometry('42x38')
             self.app.overrideredirect(True)
             # Adjust timer display font and position
-            self.app.timer_display.config(font=("Helvetica", 20))
+            self.app.timer_display.config(font=("Helvetica", 20, 'bold'))
             self.app.timer_display.grid(row=0, column=0, padx=2)
         else:
             self.app.state.is_sticky = False
