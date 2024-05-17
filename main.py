@@ -65,7 +65,7 @@ class App(ThemedTk):
         self.controls_frame = tk.Frame(self)
         self.controls_frame.pack(pady=0)
 
-        self.timer_display = TimerDisplay(self.controls_frame, text="00:00")
+        self.timer_display = TimerDisplay(self.controls_frame, text="00")
         self.time_input = TimeInput(self.controls_frame)
         self.control_handler = CommandHandler(self)
         self.control_buttons = Buttons(self.controls_frame, self.control_handler)
@@ -109,7 +109,7 @@ class App(ThemedTk):
             self.run_timer()  # Start the new timer immediately
             return
         mins, secs = divmod(self.state.remaining_time, 60)
-        time_format = '{:02d}:{:02d}'.format(mins, secs)
+        time_format = '{:02d}'.format(mins)
         self.timer_display.config(text=time_format)
         self.state.remaining_time -= 1
         self.timer_id = self.after(1000, self.run_timer)
@@ -118,7 +118,7 @@ class App(ThemedTk):
 
     def update_timer_display(self):
         mins, secs = divmod(self.state.remaining_time, 60)
-        time_format = '{:02d}:{:02d}'.format(mins, secs)
+        time_format = '{:02d}'.format(mins)
         self.timer_display.config(text=time_format)
 
 
@@ -197,11 +197,11 @@ class CommandHandler:
         if not self.app.state.is_sticky:
             self.app.state.is_sticky = True
             self.app.attributes("-topmost", True)
-            self.app.geometry('85x40')
+            self.app.geometry('42x38')
             self.app.overrideredirect(True)
             # Adjust timer display font and position
             self.app.timer_display.config(font=("Helvetica", 20))
-            self.app.timer_display.grid(row=0, column=0, padx=5)
+            self.app.timer_display.grid(row=0, column=0, padx=2)
         else:
             self.app.state.is_sticky = False
             self.app.attributes("-topmost", False)
