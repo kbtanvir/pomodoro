@@ -1,5 +1,8 @@
+import sys
 import tkinter as tk
-from tkinter import ttk
+from ttkthemes import ThemedTk, ThemedStyle
+from tkinter import PhotoImage, ttk, filedialog
+from PIL import Image, ImageTk
 
 
 class AppState:
@@ -8,14 +11,17 @@ class AppState:
         self.is_fullscreen = False
         self.is_sticky = False
         self.remaining_time = 0
-        self.geometry = "320x180"
+        self.geometry = "300x220"
+        self.current_timer = 'main'  # Added attribute to track current timer type
+        # self.break_duration = 5 * 60
+        self.break_duration = 5
 
 
 class TimerDisplay(tk.Label):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
-        self.config(font=("Helvetica", 40))
+        self.config(font=("Helvetica", 40, 'bold'))
         self.grid(row=0, column=1, padx=5)
 
 
@@ -25,25 +31,34 @@ class TimeInput(tk.Frame):
         self.minutes_label = tk.Label(self, text="Minutes:", font=("Helvetica", 12))
         self.minutes_label.grid(row=0, column=0, padx=5)
 
-        self.minutes_input = tk.Entry(self, width=5, font=("Helvetica", 12), bd=2, relief="solid")
-        self.minutes_input.insert(0, "0")
+        self.minutes_input = ttk.Entry(self, width=5, font=("Helvetica", 12))
+        self.minutes_input.insert(0, "25")
         self.minutes_input.grid(row=0, column=1, padx=5)
 
         self.seconds_label = tk.Label(self, text="Seconds:", font=("Helvetica", 12))
         self.seconds_label.grid(row=0, column=2, padx=5)
 
-        self.seconds_input = tk.Entry(self, width=5, font=("Helvetica", 12), bd=2, relief="solid")
-        self.seconds_input.insert(0, "3")
+        self.seconds_input = ttk.Entry(self, width=5, font=("Helvetica", 12))
+        self.seconds_input.insert(0, "0")
         self.seconds_input.grid(row=0, column=3, padx=5, pady=5)
+
+        self.break_duration_label = tk.Label(self, text="Break", font=("Helvetica", 12))
+        self.break_duration_label.grid(row=1, column=0, padx=5)
+
+        self.break_duration_input = ttk.Entry(self, width=5, font=("Helvetica", 12))
+        self.break_duration_input.insert(0, "5")  # Default break duration
+        self.break_duration_input.grid(row=1, column=1, padx=5)
 
         self.grid(row=1, column=1, padx=5)
 
 
-class App(tk.Tk):
+class App(ThemedTk):
     def __init__(self, state, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.state: AppState = state
-
+        self.style = ThemedStyle(self)
+        self.set_theme("arc")
+        # self.wm_attributes('-transparentcolor', '#ab23ff')
         self.title("Pomodoro Timer")
         self.geometry(self.state.geometry)
         self.attributes("-topmost", True)
@@ -52,16 +67,28 @@ class App(tk.Tk):
         self.controls_frame.pack(pady=0)
 
         self.timer_display = TimerDisplay(self.controls_frame, text="00:00")
-
         self.time_input = TimeInput(self.controls_frame)
-
         self.control_handler = CommandHandler(self)
-
-        self.control_buttons = ControlButtons(self.controls_frame, self.control_handler)
-
+        self.control_buttons = Buttons(self.controls_frame, self.control_handler)
         self.timer_id = None
 
         self.bind("<Button-1>", self.toggle_sticky_on_click)
+
+        # Initialize background label
+
+        self.background_label = tk.Label(self)
+        self.background_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+        # Set default background image
+
+        default_image_path = "R.jpg"  # Change this to the path of your default image
+        default_image = Image.open(default_image_path)
+        self.default_photo_image = ImageTk.PhotoImage(default_image)
+        self.background_label.config(image=self.default_photo_image)
+
+        # Raise background label to the bottom of the stacking order
+
+        self.background_label.lower()
 
     def toggle_sticky_on_click(self, event):
         if self.state.is_sticky:
@@ -69,14 +96,28 @@ class App(tk.Tk):
 
     def run_timer(self):
         if self.state.remaining_time <= 0:
-            self.control_handler.reset_timer()
+            if self.state.current_timer == 'main':
+                # If main timer ends, switch to break timer
+                self.state.remaining_time = int(self.time_input.break_duration_input.get()) * 60
+                self.state.current_timer = 'break'
+            else:
+                # If break timer ends, switch back to main timer
+                self.state.remaining_time = int(self.time_input.minutes_input.get()) * 60 + int(
+                    self.time_input.seconds_input.get())
+                self.state.current_timer = 'main'
+            self.update_timer_display()
+
+            # Debugging: Print the break duration value
+            print("Break Duration:", self.state.break_duration)
+
+            self.run_timer()  # Start the new timer immediately
             return
         mins, secs = divmod(self.state.remaining_time, 60)
         time_format = '{:02d}:{:02d}'.format(mins, secs)
         self.timer_display.config(text=time_format)
         self.state.remaining_time -= 1
         self.timer_id = self.after(1000, self.run_timer)
-        if self.state.remaining_time == 0:
+        if self.state.remaining_time == 0 and self.state.current_timer == 'main' and self.state.is_fullscreen == False:
             self.control_handler.toggle_fullscreen()
 
     def update_timer_display(self):
@@ -88,6 +129,25 @@ class App(tk.Tk):
 class CommandHandler:
     def __init__(self, app: App):
         self.app = app
+
+        self.break_label = None
+
+    def select_background_image(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png;*.gif")])
+        if file_path:
+            try:
+                image = Image.open(file_path)
+                photo_image = ImageTk.PhotoImage(image)
+                if self.app.background_label:
+                    self.app.background_label.config(image=photo_image)
+                else:
+                    self.app.background_label = tk.Label(self.app, image=photo_image)
+                    self.app.background_label.place(x=0, y=0, relwidth=1, relheight=1)
+                    # Raise background label to the bottom of the stacking order
+                    self.app.background_label.lower()
+                self.app.background_label.image = photo_image
+            except Exception as e:
+                print("Error loading image:", e)
 
     def start_timer(self):
         if not self.app.state.is_running:
@@ -120,14 +180,21 @@ class CommandHandler:
         self.app.update_timer_display()
 
     def toggle_fullscreen(self):
+        # if self.app.state.current_timer == 'break':
+        #     return
+
         if not self.app.state.is_fullscreen:
             self.app.overrideredirect(False)
             self.app.attributes("-fullscreen", True)
             self.app.state.is_fullscreen = True
+            self.show_break_text()
         else:
 
             self.app.attributes("-fullscreen", False)
             self.app.state.is_fullscreen = False
+            self.hide_break_text()
+
+        self.app.control_buttons.sticky_button.config(state='disabled' if self.app.state.is_fullscreen else 'normal')
 
     def toggle_sticky(self):
         if not self.app.state.is_sticky:
@@ -147,27 +214,49 @@ class CommandHandler:
             self.app.timer_display.config(font=("Helvetica", 40))
             self.app.timer_display.grid(row=0, column=1, padx=5)
 
+    def show_break_text(self):
+        if not self.break_label:
+            # Create the label if it doesn't exist
 
-class ControlButtons(tk.Frame):
+            self.break_label = tk.Label(self.app, text="Take a break", font=(
+                "Helvetica", 24), fg="white", bg="#ab23ff", )
+            self.break_label.place(relx=0.5, rely=0.5, anchor="center")  # Centered both vertically and horizontally
+        else:
+            # Show the label if it exists but is hidden
+            self.break_label.place(relx=0.5, rely=0.5, anchor="center")  # Centered both vertically and horizontally
+
+    def hide_break_text(self):
+        if self.break_label:
+            # Hide the label if it exists
+            self.break_label.place_forget()
+
+
+class Buttons(tk.Frame):
     def __init__(self, master, command_handler: CommandHandler, **kwargs):
         super().__init__(master, **kwargs)
         self.command_handler = command_handler
         self.start_button = ttk.Button(self, text="Start", command=self.command_handler.start_timer)
-        self.start_button.grid(row=0, column=0, padx=5, pady=5)
+        self.start_button.grid(row=0, column=0, padx=0, pady=0)
 
         self.pause_button = ttk.Button(self, text="Pause", state="disabled", command=self.command_handler.pause_timer)
-        self.pause_button.grid(row=0, column=1, padx=5, pady=5)
+        self.pause_button.grid(row=0, column=1, padx=0, pady=0)
 
         self.reset_button = ttk.Button(self, text="Reset", state="disabled", command=self.command_handler.reset_timer)
-        self.reset_button.grid(row=1, column=0, padx=5, pady=5)
+        self.reset_button.grid(row=0, column=2, padx=0, pady=0)
 
         self.full_screen_button = ttk.Button(self, text="Full Screen", command=self.command_handler.toggle_fullscreen)
-        self.full_screen_button.grid(row=1, column=1, padx=5, pady=5)
+        self.full_screen_button.grid(row=1, column=0, padx=0, pady=0)
 
         self.sticky_button = ttk.Button(self, text="Sticky", command=self.command_handler.toggle_sticky)
-        self.sticky_button.grid(row=2, column=1, padx=5, pady=5)
+        self.sticky_button.grid(row=1, column=1, padx=0, pady=0)
 
-        self.grid(row=2, column=1, padx=5, pady=5)
+        self.select_image_button = ttk.Button(
+            self, text="BG",
+            command=self.command_handler.select_background_image
+        )
+        self.select_image_button.grid(row=1, column=2, padx=5, pady=5)
+
+        self.grid(row=2, column=1, padx=0, pady=10)
 
 
 def main():
