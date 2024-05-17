@@ -13,8 +13,6 @@ class AppState:
         self.remaining_time = 0
         self.geometry = "300x220"
         self.current_timer = 'main'  # Added attribute to track current timer type
-        # self.break_duration = 5 * 60
-        self.break_duration = 5
 
 
 class TimerDisplay(tk.Label):
@@ -28,26 +26,26 @@ class TimerDisplay(tk.Label):
 class TimeInput(tk.Frame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        self.minutes_label = tk.Label(self, text="Minutes:", font=("Helvetica", 12))
+        self.minutes_label = tk.Label(self, text="Work", font=("Helvetica", 12))
         self.minutes_label.grid(row=0, column=0, padx=5)
 
-        self.minutes_input = ttk.Entry(self, width=5, font=("Helvetica", 12))
-        self.minutes_input.insert(0, "25")
-        self.minutes_input.grid(row=0, column=1, padx=5)
+        self.work_duration_input = ttk.Entry(self, width=5, font=("Helvetica", 12))
+        self.work_duration_input.insert(0, "25")
+        self.work_duration_input.grid(row=0, column=1, padx=5)
 
-        self.seconds_label = tk.Label(self, text="Seconds:", font=("Helvetica", 12))
-        self.seconds_label.grid(row=0, column=2, padx=5)
+        # self.seconds_label = tk.Label(self, text="Seconds:", font=("Helvetica", 12))
+        # self.seconds_label.grid(row=0, column=2, padx=5)
 
-        self.seconds_input = ttk.Entry(self, width=5, font=("Helvetica", 12))
-        self.seconds_input.insert(0, "0")
-        self.seconds_input.grid(row=0, column=3, padx=5, pady=5)
+        # self.seconds_input = ttk.Entry(self, width=5, font=("Helvetica", 12))
+        # self.seconds_input.insert(0, "0")
+        # self.seconds_input.grid(row=0, column=3, padx=5, pady=5)
 
         self.break_duration_label = tk.Label(self, text="Break", font=("Helvetica", 12))
-        self.break_duration_label.grid(row=1, column=0, padx=5)
+        self.break_duration_label.grid(row=0, column=2, padx=5)
 
         self.break_duration_input = ttk.Entry(self, width=5, font=("Helvetica", 12))
         self.break_duration_input.insert(0, "5")  # Default break duration
-        self.break_duration_input.grid(row=1, column=1, padx=5)
+        self.break_duration_input.grid(row=0, column=3, padx=5)
 
         self.grid(row=1, column=1, padx=5)
 
@@ -102,13 +100,10 @@ class App(ThemedTk):
                 self.state.current_timer = 'break'
             else:
                 # If break timer ends, switch back to main timer
-                self.state.remaining_time = int(self.time_input.minutes_input.get()) * 60 + int(
-                    self.time_input.seconds_input.get())
+                self.state.remaining_time = int(self.time_input.work_duration_input.get()) * 60
+                # + int(self.time_input.seconds_input.get())
                 self.state.current_timer = 'main'
             self.update_timer_display()
-
-            # Debugging: Print the break duration value
-            print("Break Duration:", self.state.break_duration)
 
             self.run_timer()  # Start the new timer immediately
             return
@@ -153,9 +148,10 @@ class CommandHandler:
         if not self.app.state.is_running:
             if self.app.state.remaining_time == 0:
                 # If no remaining time is stored, initialize from input fields
-                minutes = int(self.app.time_input.minutes_input.get())
-                seconds = int(self.app.time_input.seconds_input.get())
-                self.app.state.remaining_time = minutes * 60 + seconds
+                minutes = int(self.app.time_input.work_duration_input.get())
+                # seconds = int(self.app.time_input.seconds_input.get())
+                self.app.state.remaining_time = minutes * 60
+                # + seconds
             self.app.state.is_running = True
             self.app.control_buttons.start_button.config(state="disabled")
             self.app.control_buttons.pause_button.config(state="normal")
@@ -175,8 +171,8 @@ class CommandHandler:
         self.app.control_buttons.pause_button.config(state="disabled")
         self.app.control_buttons.reset_button.config(state="disabled")
         self.app.after_cancel(self.app.timer_id)
-        self.app.state.remaining_time = int(self.app.time_input.minutes_input.get()) * 60 + int(
-            self.app.time_input.seconds_input.get())
+        self.app.state.remaining_time = int(self.app.time_input.work_duration_input.get()) * 60
+        # + int(self.app.time_input.seconds_input.get())
         self.app.update_timer_display()
 
     def toggle_fullscreen(self):
@@ -256,7 +252,7 @@ class Buttons(tk.Frame):
         )
         self.select_image_button.grid(row=1, column=2, padx=5, pady=5)
 
-        self.grid(row=2, column=1, padx=0, pady=10)
+        self.grid(row=2, column=1, padx=10, pady=10)
 
 
 def main():
