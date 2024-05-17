@@ -11,7 +11,7 @@ class AppState:
         self.is_fullscreen = False
         self.is_sticky = False
         self.remaining_time = 0
-        self.geometry = "300x220"
+        self.geometry = "280x180"
         self.current_timer = 'main'  # Added attribute to track current timer type
 
 
@@ -56,6 +56,7 @@ class App(ThemedTk):
         self.state: AppState = state
         self.style = ThemedStyle(self)
         self.set_theme("arc")
+        self.iconbitmap(default='app.ico')
         # self.wm_attributes('-transparentcolor', '#ab23ff')
         self.title("Pomodoro Timer")
         self.geometry(self.state.geometry)
@@ -207,19 +208,20 @@ class CommandHandler:
             self.app.geometry(self.app.state.geometry)
             self.app.overrideredirect(False)
             # Restore timer display font and position
-            self.app.timer_display.config(font=("Helvetica", 40))
+            self.app.timer_display.config(font=("Helvetica", 40, "bold"))
             self.app.timer_display.grid(row=0, column=1, padx=5)
 
     def show_break_text(self):
         if not self.break_label:
             # Create the label if it doesn't exist
 
-            self.break_label = tk.Label(self.app, text="Take a break", font=(
-                "Helvetica", 24), fg="white", bg="#ab23ff", )
-            self.break_label.place(relx=0.5, rely=0.5, anchor="center")  # Centered both vertically and horizontally
-        else:
-            # Show the label if it exists but is hidden
-            self.break_label.place(relx=0.5, rely=0.5, anchor="center")  # Centered both vertically and horizontally
+            self.break_label = tk.Label(
+                self.app,
+                text="Take a break",
+                font=("Helvetica", 30), fg="white", bg="black"
+            )
+
+        self.break_label.place(relx=0.5, rely=0.5, anchor="center")  # Centered both vertically and horizontally
 
     def hide_break_text(self):
         if self.break_label:
