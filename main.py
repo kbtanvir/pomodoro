@@ -4,70 +4,37 @@ from tkinter import ttk, filedialog
 from PIL import Image, ImageTk
 
 
-class AppState:
+class AppSettings:
     def __init__(self):
         self.is_running = False
         self.is_fullscreen = False
         self.is_sticky = False
         self.remaining_time = 0
         self.geometry = "280x180"
-        self.current_timer = 'main'  # Added attribute to track current timer type
-
-
-class TimerDisplay(tk.Label):
-    def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
-
-        self.config(font=("Helvetica", 40, 'bold'))
-        self.grid(row=0, column=1, padx=5)
-
-
-class TimeInput(tk.Frame):
-    def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
-        self.minutes_label = tk.Label(self, text="Work", font=("Helvetica", 12))
-        self.minutes_label.grid(row=0, column=0, padx=5)
-
-        self.work_duration_input = ttk.Entry(self, width=5, font=("Helvetica", 12))
-        self.work_duration_input.insert(0, "25")
-        self.work_duration_input.grid(row=0, column=1, padx=5)
-
-        # self.seconds_label = tk.Label(self, text="Seconds:", font=("Helvetica", 12))
-        # self.seconds_label.grid(row=0, column=2, padx=5)
-
-        # self.seconds_input = ttk.Entry(self, width=5, font=("Helvetica", 12))
-        # self.seconds_input.insert(0, "0")
-        # self.seconds_input.grid(row=0, column=3, padx=5, pady=5)
-
-        self.break_duration_label = tk.Label(self, text="Break", font=("Helvetica", 12))
-        self.break_duration_label.grid(row=0, column=2, padx=5)
-
-        self.break_duration_input = ttk.Entry(self, width=5, font=("Helvetica", 12))
-        self.break_duration_input.insert(0, "5")  # Default break duration
-        self.break_duration_input.grid(row=0, column=3, padx=5)
-
-        self.grid(row=1, column=1, padx=5)
+        self.current_timer = 'main'
+        self.theme_name = "arc"
+        self.app_title = "Pomodoro Timer"
 
 
 class App(ThemedTk):
     def __init__(self, state, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.state: AppState = state
+        self.state: AppSettings = state
         self.style = ThemedStyle(self)
-        self.set_theme("arc")
+        self.set_theme(self.state.theme_name)
         self.iconbitmap(default='app.ico')
         # self.wm_attributes('-transparentcolor', '#ab23ff')
-        self.title("Pomodoro Timer")
-        self.geometry(self.state.geometry)
+        self.title(self.state.app_title)
+        # self.geometry(self.state.geometry)
         self.attributes("-topmost", True)
 
         self.controls_frame = tk.Frame(self)
         self.controls_frame.pack(pady=0)
 
-        self.timer_display = TimerDisplay(self.controls_frame, text="00")
-        self.time_input = TimeInput(self.controls_frame)
         self.control_handler = CommandHandler(self)
-        self.control_buttons = Buttons(self.controls_frame, self.control_handler)
+        self.timer_display = TimerDisplay(self.controls_frame, text="25")
+        self.time_input = TimeInput(self.controls_frame)
+        self.buttons = Buttons(self.controls_frame, self.control_handler)
         self.timer_id = None
 
         self.bind("<Button-1>", self.toggle_sticky_on_click)
@@ -121,7 +88,7 @@ class App(ThemedTk):
         self.timer_display.config(text=time_format)
 
 
-class CommandHandler:
+class CommandHandler():
     def __init__(self, app: App):
         self.app = app
 
@@ -153,44 +120,44 @@ class CommandHandler:
                 self.app.state.remaining_time = minutes * 60
                 # + seconds
             self.app.state.is_running = True
-            self.app.control_buttons.start_button.config(state="disabled")
-            self.app.control_buttons.pause_button.config(state="normal")
-            self.app.control_buttons.reset_button.config(state="normal")
+            self.app.buttons.start_button.config(state="disabled")
+            self.app.buttons.pause_button.config(state="normal")
+            self.app.buttons.reset_button.config(state="normal")
             self.app.run_timer()
 
     def pause_timer(self):
         if self.app.state.is_running:
             self.app.state.is_running = False
-            self.app.control_buttons.start_button.config(state="normal")
-            self.app.control_buttons.pause_button.config(state="disabled")
+            self.app.buttons.start_button.config(state="normal")
+            self.app.buttons.pause_button.config(state="disabled")
             self.app.after_cancel(self.app.timer_id)
 
     def reset_timer(self):
         self.app.state.is_running = False
-        self.app.control_buttons.start_button.config(state="normal")
-        self.app.control_buttons.pause_button.config(state="disabled")
-        self.app.control_buttons.reset_button.config(state="disabled")
+        self.app.buttons.start_button.config(state="normal")
+        self.app.buttons.pause_button.config(state="disabled")
+        self.app.buttons.reset_button.config(state="disabled")
         self.app.after_cancel(self.app.timer_id)
         self.app.state.remaining_time = int(self.app.time_input.work_duration_input.get()) * 60
         # + int(self.app.time_input.seconds_input.get())
         self.app.update_timer_display()
 
     def toggle_fullscreen(self):
-        # if self.app.state.current_timer == 'break':
-        #     return
+        self.app.overrideredirect(False)
 
         if not self.app.state.is_fullscreen:
-            self.app.overrideredirect(False)
+            self.app.attributes("-topmost", False)
             self.app.attributes("-fullscreen", True)
             self.app.state.is_fullscreen = True
             self.show_break_text()
+            self.app.timer_display.grid(row=0, column=1, padx=5)
         else:
-
+            self.app.attributes("-topmost", True)
             self.app.attributes("-fullscreen", False)
             self.app.state.is_fullscreen = False
             self.hide_break_text()
 
-        self.app.control_buttons.sticky_button.config(state='disabled' if self.app.state.is_fullscreen else 'normal')
+        self.app.buttons.sticky_button.config(state='disabled' if self.app.state.is_fullscreen else 'normal')
 
     def toggle_sticky(self):
         if not self.app.state.is_sticky:
@@ -228,9 +195,44 @@ class CommandHandler:
             self.break_label.place_forget()
 
 
-class Buttons(tk.Frame):
-    def __init__(self, master, command_handler: CommandHandler, **kwargs):
+class TimerDisplay(tk.Label):
+    def __init__(self, cf, **kwargs):
+        super().__init__(cf, **kwargs)
+
+        self.config(font=("Helvetica", 40, 'bold'))
+        self.grid(row=0, column=1, padx=5)
+
+
+class TimeInput(tk.Frame):
+    def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+        self.minutes_label = tk.Label(self, text="Work", font=("Helvetica", 12))
+        self.minutes_label.grid(row=0, column=0, padx=5)
+
+        self.work_duration_input = ttk.Entry(self, width=5, font=("Helvetica", 12))
+        self.work_duration_input.insert(0, "25")
+        self.work_duration_input.grid(row=0, column=1, padx=5)
+
+        # self.seconds_label = tk.Label(self, text="Seconds:", font=("Helvetica", 12))
+        # self.seconds_label.grid(row=0, column=2, padx=5)
+
+        # self.seconds_input = ttk.Entry(self, width=5, font=("Helvetica", 12))
+        # self.seconds_input.insert(0, "0")
+        # self.seconds_input.grid(row=0, column=3, padx=5, pady=5)
+
+        self.break_duration_label = tk.Label(self, text="Break", font=("Helvetica", 12))
+        self.break_duration_label.grid(row=0, column=2, padx=5)
+
+        self.break_duration_input = ttk.Entry(self, width=5, font=("Helvetica", 12))
+        self.break_duration_input.insert(0, "5")  # Default break duration
+        self.break_duration_input.grid(row=0, column=3, padx=5)
+
+        self.grid(row=1, column=1, padx=5)
+
+
+class Buttons(tk.Frame):
+    def __init__(self, cf, command_handler: CommandHandler, **kwargs):
+        super().__init__(cf, **kwargs)
         self.command_handler = command_handler
         self.start_button = ttk.Button(self, text="Start", command=self.command_handler.start_timer)
         self.start_button.grid(row=0, column=0, padx=0, pady=0)
@@ -257,7 +259,7 @@ class Buttons(tk.Frame):
 
 
 def main():
-    state = AppState()
+    state = AppSettings()
     app = App(state)
     app.mainloop()
 

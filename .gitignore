@@ -1,3 +1,4 @@
 /pomodoro.log
 dist
 /build
+.venv-pomodoro
