@@ -6,8 +6,6 @@
 
 The Pomodoro Timer App is a simple yet powerful productivity tool designed to help you manage your time effectively using the Pomodoro Technique. Whether you're studying, working, or engaging in any task that requires focus, this app can help you break your work into intervals, with built-in breaks, to maximize productivity and maintain focus.
 
-# Pomodoro Timer App
-
 ## Problem Statement
 
 I have been struggling with sitting too much in front of the screen without taking any breaks. I used other timers, but they either pop up in some corner or give me alert sounds. However, I was too lazy or too focused on something that I forgot or ignored the timer. So, I built this timer for Windows that runs and goes full screen, preventing me from working when the interval is reached.
