@@ -41,7 +41,7 @@ Make sure you have the following installed:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/pomodoro-timer-app.git
+   git clone https://github.com/your-username/pomodoro.git
    ```
 
 2. Navigate to the project directory:
@@ -63,14 +63,6 @@ To start the Pomodoro Timer App, run the following command:
 ```bash
 python main.py
 ```
-
-## Usage
-
-1. **Set Timer:** Customize your work and break durations in the settings.
-2. **Fullscreen Mode:** Toggle fullscreen mode to focus entirely on your task.
-3. **Sticky Mode:** Enable sticky mode to keep the timer on top of other windows without taking much space.
-4. **Background Image:** Personalize the background with your favorite image.
-5. **Start, Pause, Reset:** Use the control buttons to manage the timer as needed.
 
 ## Contributing
 
